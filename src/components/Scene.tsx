@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, forwardRef, useImperativeHandle } from 'react'
+import { Suspense, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import { useEditor } from '../store'

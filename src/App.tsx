@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import './styles.css'
 import Toolbar from './components/Toolbar'
 import Scene from './components/Scene'

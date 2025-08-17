@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Hotspot } from '../store'
 import { useEditor } from '../store'
