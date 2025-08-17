@@ -1,0 +1,97 @@
+:root {
+  --bg: #0B1020;
+  --panel: #11183a;
+  --panel-2: #0f1533;
+  --text: #E6EAFF;
+  --muted: #a6b0ff;
+  --accent: #7c9aff;
+  --danger: #ff6b6b;
+  --ok: #23c55e;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 56px 1fr 160px;
+  gap: 8px;
+  padding: 8px;
+}
+.toolbar {
+  background: var(--panel);
+  border: 1px solid #1a2558;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.toolbar .spacer { flex: 1; }
+.btn {
+  background: #1b2557;
+  color: var(--text);
+  border: 1px solid #22307a;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn.danger { border-color: #7a2240; background:#431429; color:#ffd3dc; }
+.btn.ok { border-color: #1f6a3b; background:#13301f; color:#c1ffd8; }
+.file {
+  position: relative;
+  overflow: hidden;
+}
+.file input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.canvas-wrap {
+  background: var(--panel-2);
+  border: 1px solid #1a2558;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 8px;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid #1a2558;
+  border-radius: 10px;
+  padding: 10px;
+  overflow: auto;
+}
+.panel h3 { margin: 0 0 10px; font-size: 16px; color: var(--muted); }
+.list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.card {
+  background: #0c1440;
+  border: 1px solid #1a2558;
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+.card input {
+  width: 100%;
+  background: #0e1a4f;
+  color: var(--text);
+  border: 1px solid #22307a;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.row { display:flex; gap:8px; align-items:center; }
+.kbd {
+  padding: 2px 6px; border:1px solid #3a4bad; border-radius:6px; background:#0d1a4a; color:#c9d3ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+.help p { margin: 6px 0; color: #b6c0ff; font-size: 14px; }
+hr { border: none; border-top:1px solid #1a2558; margin: 10px 0; }
