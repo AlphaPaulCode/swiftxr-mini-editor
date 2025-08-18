@@ -2,21 +2,26 @@ import { useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Hotspot } from '../store'
 import { useEditor } from '../store'
+import type { ChangeEvent, KeyboardEvent } from 'react'  // 👈 add
 
 export default function HotspotLabel({ id, position, text }: Hotspot) {
   const { updateHotspot, removeHotspot } = useEditor()
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(text)
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setVal(e.target.value)
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      updateHotspot(id, { text: val })
+      setEditing(false)
+    }
+  }
+
   return (
-    <Html
-      position={position}
-      center
-      occlude
-      distanceFactor={6}
-      transform
-      style={{ pointerEvents: 'auto' }}
-    >
+    <Html position={position} center occlude distanceFactor={6} transform style={{ pointerEvents: 'auto' }}>
       <div
         style={{
           background: '#0b133a',
@@ -30,23 +35,12 @@ export default function HotspotLabel({ id, position, text }: Hotspot) {
         {editing ? (
           <>
             <input
-              style={{
-                width: '100%',
-                background: '#0e1a4f',
-                color: '#e6eaff',
-                border: '1px solid #22307a',
-                borderRadius: 6,
-                padding: '6px 8px',
-                marginBottom: 6,
-              }}
+              className="hotspot-input"
               value={val}
-              onChange={(e) => setVal(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  updateHotspot(id, { text: val })
-                  setEditing(false)
-                }
-              }}
+              onChange={handleChange}      // ✅ typed
+              onKeyDown={handleKeyDown}    // ✅ typed
+              placeholder="Enter label"
+              title="Hotspot label input"
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button
@@ -68,9 +62,7 @@ export default function HotspotLabel({ id, position, text }: Hotspot) {
             <div style={{ fontWeight: 600, marginBottom: 6 }}>{text}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button className="btn" onClick={() => setEditing(true)}>Edit</button>
-              <button className="btn danger" onClick={() => removeHotspot(id)}>
-                Delete
-              </button>
+              <button className="btn danger" onClick={() => removeHotspot(id)}>Delete</button>
             </div>
           </>
         )}

@@ -19,6 +19,13 @@ export default function App() {
     URL.revokeObjectURL(a.href)
   }, [hotspots])
 
+  type ImportedHotspot = {
+    id?: string
+    position: [number, number, number]
+    text: string
+    [key: string]: unknown
+  }
+
   const importHotspots = useCallback((file: File) => {
     const r = new FileReader()
     r.onload = () => {
@@ -26,9 +33,9 @@ export default function App() {
         const parsed = JSON.parse(String(r.result))
         if (Array.isArray(parsed.hotspots)) {
           const hs = parsed.hotspots
-            .filter((h: any) => Array.isArray(h.position) && typeof h.text === 'string' && h.position.length === 3)
-            .map((h: any) => ({ ...h, id: String(h.id || crypto.randomUUID()) }))
-          ;(useEditor as any).setState({ hotspots: hs })
+            .filter((h: ImportedHotspot) => Array.isArray(h.position) && typeof h.text === 'string' && h.position.length === 3)
+            .map((h: ImportedHotspot) => ({ ...h, id: String(h.id || crypto.randomUUID()) }))
+          useEditor.getState().setHotspots(hs)
         }
       } catch {
         alert('Invalid hotspots file')
@@ -91,6 +98,8 @@ export default function App() {
                 <input
                   value={h.text}
                   onChange={(e) => updateHotspot(h.id, { text: e.target.value })}
+                  placeholder="Hotspot label"
+                  title="Edit hotspot label"
                 />
                 <div className="row" style={{ fontSize: 13, color: '#a6b0ff' }}>
                   Position: [{h.position.map((n) => n.toFixed(3)).join(', ')}]

@@ -1,15 +1,18 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useLoader, useThree } from '@react-three/fiber'
+import type { ThreeEvent } from '@react-three/fiber'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useEditor } from '../store'
 
 export default function Model({ url }: { url: string }) {
   const gltf = useLoader(GLTFLoader, url)
   const { addHotspot } = useEditor()
+
   const { camera, controls } = useThree((s) => ({
     camera: s.camera,
-    controls: s.controls as any
+    controls: s.controls as OrbitControlsImpl | undefined
   }))
 
   const group = useMemo(() => {
@@ -24,31 +27,33 @@ export default function Model({ url }: { url: string }) {
     const sphere = box.getBoundingSphere(new THREE.Sphere())
     if (!sphere) return
 
-    // center at origin
     group.position.sub(sphere.center)
 
-    // position camera
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50
     const dist = sphere.radius / Math.tan((fov * Math.PI) / 360)
     camera.position.set(0, sphere.radius * 0.6, dist * 1.35)
-    ;(controls as any)?.target.set(0, 0, 0)
-    ;(controls as any)?.update()
+
+    controls?.target.set(0, 0, 0)
+    controls?.update()
   }, [group, camera, controls])
 
   // Ensure visibility and raycastability
   useEffect(() => {
     group.traverse((obj) => {
-      const mesh = obj as THREE.Mesh
-      if (mesh.isMesh) {
+      if ((obj as THREE.Mesh).isMesh) {
+        const mesh = obj as THREE.Mesh
         mesh.castShadow = true
         mesh.receiveShadow = true
-        // Make single-sided assets visible from both sides
-        const setSide = (m: any) => { if (m && 'side' in m) m.side = THREE.DoubleSide }
-        const mat = mesh.material as any
+
+        const setSide = (m: THREE.Material) => {
+          m.side = THREE.DoubleSide
+        }
+
+        const mat = mesh.material
         if (Array.isArray(mat)) {
           mat.forEach(setSide)
         } else {
-          setSide(mat)
+          setSide(mat as THREE.Material)
         }
       }
     })
@@ -57,7 +62,7 @@ export default function Model({ url }: { url: string }) {
   return (
     <primitive
       object={group}
-      onPointerDown={(e) => {
+      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
         if (e.shiftKey) {
           e.stopPropagation()
           const p = e.point

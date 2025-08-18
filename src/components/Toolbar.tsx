@@ -22,6 +22,7 @@ export default function Toolbar(props: Props) {
           ref={fileRef}
           type="file"
           accept=".glb,.GLB,model/gltf-binary"
+          title="Import GLB file"
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (!f) return
@@ -49,6 +50,7 @@ export default function Toolbar(props: Props) {
           ref={jsonRef}
           type="file"
           accept="application/json,.json"
+          title="Import hotspots JSON file"
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (f) props.importHotspots(f)
