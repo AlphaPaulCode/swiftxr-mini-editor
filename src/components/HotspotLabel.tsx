@@ -21,7 +21,7 @@ export default function HotspotLabel({ id, position, text }: Hotspot) {
   }
 
   return (
-    <Html position={position} center occlude distanceFactor={6} transform style={{ pointerEvents: 'auto' }}>
+    <Html position={position} center distanceFactor={6} transform style={{ pointerEvents: 'auto' }}>
       <div
         style={{
           background: '#0b133a',

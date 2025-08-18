@@ -110,41 +110,6 @@ export default function Model({ url }: { url: string }) {
     })
   }, [group])
 
-  // Hide helper/wireframe geometry that often ships in GLBs
-useEffect(() => {
-  const nameLooksLikeHelper = (name?: string) =>
-    !!name && /collider|helper|bound|bbox|box|wire|outline/i.test(name)
-
-  group.traverse((obj) => {
-    const object3d = obj as THREE.Object3D & { isLineSegments?: boolean; isLine?: boolean; isPoints?: boolean }
-
-    // 1) Hide line-like nodes (common for outlines/collision boxes)
-    if (object3d.isLineSegments || object3d.isLine || object3d.isPoints) {
-      obj.visible = false
-      return
-    }
-
-    // 2) If it's a mesh, turn off wireframe materials and optionally hide helpers by name
-    if ((obj as THREE.Mesh).isMesh) {
-      if (nameLooksLikeHelper(obj.name)) {
-        obj.visible = false
-        return
-      }
-
-      const mesh = obj as THREE.Mesh
-      const mm = mesh.material as THREE.Material | THREE.Material[] | undefined
-      const disableWire = (m: THREE.Material) => {
-        if ('wireframe' in m && (m as THREE.Material & { wireframe?: boolean }).wireframe) {
-          (m as THREE.Material & { wireframe?: boolean }).wireframe = false
-        }
-      }
-      if (Array.isArray(mm)) mm.forEach(disableWire)
-      else if (mm) disableWire(mm)
-    }
-  })
-}, [group])
-
-
   return (
     <>
       <primitive
