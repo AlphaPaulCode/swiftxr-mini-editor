@@ -1,5 +1,5 @@
 // Model.tsx
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { useLoader, useThree } from '@react-three/fiber'
 import type { ThreeEvent } from '@react-three/fiber'
@@ -16,14 +16,18 @@ export default function Model({ url }: { url: string }) {
     controls: s.controls as OrbitControlsImpl | undefined,
   }))
 
+  // Put the GLTF under a group we can position/scale
   const group = useMemo(() => {
     const g = new THREE.Group()
     g.add(gltf.scene)
     return g
   }, [gltf])
 
+  // Debug box helper (shows a wireframe around the model)
+  const [boxHelper, setBoxHelper] = useState<THREE.Box3Helper | null>(null)
+
   useEffect(() => {
-    // Compute bounds
+    // Compute initial bounds
     const box = new THREE.Box3().setFromObject(group)
     const sphere = box.getBoundingSphere(new THREE.Sphere())
     if (!sphere) return
@@ -32,32 +36,48 @@ export default function Model({ url }: { url: string }) {
     group.position.sub(sphere.center)
 
     // Normalize scale so giant/tiny models fit consistently
-    const targetRadius = 3 // units
+    const targetRadius = 3 // world units
     const r = Math.max(sphere.radius, 1e-6)
     const scale = targetRadius / r
     group.scale.setScalar(scale)
 
-    // Recompute placement after scaling
-    const scaledRadius = targetRadius
+    // Drop the model so it rests on the grid (y = 0)
+    const box2 = new THREE.Box3().setFromObject(group)
+    const dy = box2.min.y
+    if (Number.isFinite(dy)) group.position.y -= dy
+
+    // Camera framing
     const fov = (camera as THREE.PerspectiveCamera).fov ?? 50
-    const dist = scaledRadius / Math.tan((fov * Math.PI) / 360)
+    const dist = targetRadius / Math.tan((fov * Math.PI) / 360)
+    camera.position.set(0, targetRadius * 0.6, dist * 1.35)
 
-    // Camera + controls
-    camera.position.set(0, scaledRadius * 0.6, dist * 1.35)
-
-    // Ensure far plane isn’t clipping the model
-    const neededFar = dist * 3
+    // Ensure far plane isn’t clipping
     const persp = camera as THREE.PerspectiveCamera
+    const neededFar = dist * 3
     if (persp.far < neededFar) {
       persp.far = neededFar
       persp.updateProjectionMatrix()
     }
 
+    // Controls target
     controls?.target.set(0, 0, 0)
     controls?.update()
+
+    // Build a fresh helper so you can SEE where the model is
+    const helper = new THREE.Box3Helper(box2, new THREE.Color('#ff6b6b'))
+    setBoxHelper(helper)
+
+    // Log bounds for sanity
+    // console.log('model radius:', targetRadius, 'raw radius:', r)
+
+    return () => {
+      setBoxHelper(null)
+      helper.geometry.dispose()
+      ;(helper.material as THREE.Material).dispose?.()
+    }
   }, [group, camera, controls])
 
-  // Make meshes double-sided & shadowed (type-safe)
+  // Make meshes double-sided & visible (guard against invisible materials)
   useEffect(() => {
     group.traverse((obj) => {
       if ((obj as THREE.Mesh).isMesh) {
@@ -66,29 +86,44 @@ export default function Model({ url }: { url: string }) {
         mesh.receiveShadow = true
 
         const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
-        const setSide = (m: THREE.Material) => {
+        const ensureVisible = (m: THREE.Material) => {
+          // If material is fully transparent/alpha ~ 0, make it visible
+          type MaterialWithOpacity = THREE.Material & { transparent?: boolean; opacity?: number }
+          const matWithOpacity = m as MaterialWithOpacity
+          if (matWithOpacity.transparent && typeof matWithOpacity.opacity === 'number' && matWithOpacity.opacity < 0.05) {
+            matWithOpacity.opacity = 1
+            matWithOpacity.transparent = false
+          }
+          // Always render both sides to avoid culling surprises
           m.side = THREE.DoubleSide
         }
 
         if (Array.isArray(mat)) {
-          mat.forEach(setSide)
+          mat.forEach(ensureVisible)
         } else if (mat) {
-          setSide(mat)
+          ensureVisible(mat)
+        } else {
+          // Some GLBs can have no material; give them something visible
+          mesh.material = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide })
         }
       }
     })
   }, [group])
 
   return (
-    <primitive
-      object={group}
-      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
-        if (e.shiftKey) {
-          e.stopPropagation()
-          const p = e.point
-          addHotspot([p.x, p.y, p.z])
-        }
-      }}
-    />
+    <>
+      <primitive
+        object={group}
+        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
+          if (e.shiftKey) {
+            e.stopPropagation()
+            const p = e.point
+            addHotspot([p.x, p.y, p.z])
+          }
+        }}
+      />
+      {/* DEBUG: shows a wireframe bounding box. Remove when satisfied. */}
+      {boxHelper && <primitive object={boxHelper} />}
+    </>
   )
 }
