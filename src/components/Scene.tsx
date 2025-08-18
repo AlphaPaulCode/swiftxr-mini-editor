@@ -1,6 +1,6 @@
 import { Suspense, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei'
+import { OrbitControls, Grid, GizmoHelper, GizmoViewport, Html } from '@react-three/drei'
 import { useEditor } from '../store'
 import HotspotLabel from './HotspotLabel'
 import Model from './Model'
@@ -42,10 +42,10 @@ const Scene = forwardRef<SceneHandle>((_props, ref) => {
 
       {/* Model is mounted exactly once, and behind an error boundary */}
       <ErrorBoundary>
-        <Suspense fallback={null}>
-          {modelUrl && <Model url={modelUrl} />}
+        <Suspense fallback={<Html center>Loading model…</Html>}>
+            {modelUrl && <Model url={modelUrl} />}
         </Suspense>
-      </ErrorBoundary>
+        </ErrorBoundary>
 
       {hotspots.map((h) => (
         <HotspotLabel key={h.id} {...h} />
