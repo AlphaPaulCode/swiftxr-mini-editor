@@ -40,7 +40,11 @@ const Scene = forwardRef<SceneHandle>((_props, ref) => {
   }
 
   return (
-    <Canvas shadows camera={{ position: [0, 2, 6], fov: 50, near: 0.1, far: 1000 }} dpr={[1, 2]}>
+   <Canvas
+  shadows
+  camera={{ position: [0, 2, 6], fov: 50, near: 0.01, far: 20000 }}
+  dpr={[1, 2]}
+>
       {/* Solid background; no remote HDRI */}
       <color attach="background" args={['#0B1020']} />
 
